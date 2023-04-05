@@ -3,13 +3,13 @@ import { useState } from "react";
 
 function Square({ value, setValue }) {
   return (
-    <button className="square" onClick={setValue}>{value}</button>
+    <button className="square" onClick={setValue}>
+      {value}
+    </button>
   )
 }
 
-export default function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null))
-  const [xIsNext, setxIsNext] = useState(true)
+function Board({ xIsNext, squares, onPlay }) {
 
   function getWinner() {
     const a = [
@@ -24,7 +24,7 @@ export default function Board() {
     ]
     for (let i = 0; i < a.length; i += 1) {
       if (squares && squares[a[i][0]] && squares[a[i][0]] === squares[a[i][1]] && squares[a[i][0]] === squares[a[i][2]])
-        return squares[a[0][0]]
+        return squares[a[i][0]]
     }
     return null
   }
@@ -36,8 +36,7 @@ export default function Board() {
     const newsquares = squares.slice();
 
     newsquares[i] = xIsNext ? 'X' : 'O'
-    setSquares(newsquares)
-    setxIsNext(!xIsNext)
+    onPlay(newsquares)
   }
 
   let winner = getWinner()
@@ -68,4 +67,51 @@ export default function Board() {
 
     </React.Fragment>
   );
+}
+
+
+
+export default function Game() {
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [currentMove, setCurrentMove] = useState(0);
+  const xIsNext = currentMove % 2 === 0;
+  const currentSquares = history[currentMove];
+
+  function jumpTo(i) {
+    setCurrentMove(i)
+  }
+
+  const moves = history.map((v, i) => {
+    let description;
+    if (i === 0) {
+      description = 'go to game start'
+    }
+    else {
+      description = 'go to move #' + i
+    }
+    return (
+      <li key={i}>
+        <button onClick={() => jumpTo(i)}>{description}</button>
+      </li>
+    )
+  });
+
+  function handlePlay(nextSquares) {
+    setHistory([...history.slice(0, currentMove + 1), nextSquares]);
+    setCurrentMove(currentMove + 1);
+  }
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board
+          xIsNext={xIsNext}
+          squares={currentSquares}
+          onPlay={handlePlay}
+        />
+      </div>
+      <div className="game-info">
+        <ol>{moves}</ol>
+      </div>
+    </div>
+  )
 }
